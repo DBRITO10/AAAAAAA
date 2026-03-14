@@ -2,140 +2,51 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agendamento de Cargas</title>
+    <title>Login | Sistema de Cargas</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-    <nav>
-        <div class="logo">VarejoLog v1.0</div>
-        <div id="user-display" class="hidden">
-            <span id="user-email"></span>
-            <button onclick="logout()" class="btn-reject">Sair</button>
-        </div>
-    </nav>
-
-    <div class="container">
-
-        <section id="view-login" class="card">
-            <h2>Acesso ao Sistema</h2>
-            <input type="email" id="login-email" placeholder="Seu e-mail">
-            <input type="password" id="login-senha" placeholder="Sua senha">
-            <div style="margin-top: 15px;">
-                <button onclick="login()" class="btn-confirm">Entrar</button>
-                <button onclick="cadastrar()" style="background:none; color: var(--primary); text-decoration: underline;">Criar nova conta</button>
-            </div>
-        </section>
-
-        <section id="view-perfil" class="card hidden">
-            <h2>Complete seu Cadastro</h2>
-            <p>Informe os dados da empresa para continuar.</p>
-            <form id="form-perfil">
-                <input type="text" id="p-nome" placeholder="Nome Fantasia" required>
-                <input type="text" id="p-razao" placeholder="Razão Social" required>
-                <input type="text" id="p-cnpj" placeholder="CNPJ" required>
-                <input type="tel" id="p-tel" placeholder="Telefone de Contato" required>
-                <button type="submit" class="btn-add">Salvar Perfil</button>
-            </form>
-        </section>
-
-        <section id="view-fornecedor" class="hidden">
-            <div class="card">
-                <h3>Solicitar Novo Agendamento (Check-in 07:00)</h3>
-                <form id="form-agendamento">
-                    <input type="text" id="ref-carga" placeholder="Nº da Carga / Nota Fiscal" required>
-                    <input type="date" id="data-sugerida" required>
-                    <select id="tipo-veiculo">
-                        <option value="Toco">Toco</option>
-                        <option value="Truck">Truck</option>
-                        <option value="Carreta">Carreta</option>
-                    </select>
-
-                    <div id="area-itens">
-                        <h4>Itens e Volumes</h4>
-                        <div id="lista-itens">
-                            <div class="item-row">
-                                <input type="text" placeholder="Descrição" class="item-desc" required>
-                                <input type="number" placeholder="Qtd" class="item-qtd" required>
-                                <input type="text" placeholder="Volumes" class="item-vol" required>
-                            </div>
-                        </div>
-                        <button type="button" onclick="adicionarLinha()" class="btn-add" style="margin-top:10px;">+ Item</button>
-                    </div>
-                    <br>
-                    <button type="submit" class="btn-confirm">Enviar Solicitação</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3>Meus Agendamentos</h3>
-                <table id="tabela-fornecedor">
-                    <thead>
-                        <tr>
-                            <th>Ref. Carga</th>
-                            <th>Data</th>
-                            <th>Status</th>
-                            <th>SENHA</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="view-comprador" class="hidden">
-            <div class="card">
-                <h3>Cargas Pendentes de Aprovação Comercial</h3>
-                <table id="tabela-comprador">
-                    <thead>
-                        <tr>
-                            <th>Fornecedor</th>
-                            <th>Ref. Carga</th>
-                            <th>Composição</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="view-logistica" class="hidden">
-            <div class="card">
-                <h3>Gestão de Recebimento e Docas</h3>
-                <div class="filtros">
-                    <input type="date" id="filtro-data-log">
-                    <button onclick="filtrarLogistica()" class="btn-confirm">Filtrar</button>
-                </div>
-                <table id="tabela-logistica">
-                    <thead>
-                        <tr>
-                            <th>Senha</th>
-                            <th>Fornecedor</th>
-                            <th>Ref. Carga</th>
-                            <th>Data Confirmada</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-
+<body class="auth-page">
+    <div class="auth-card">
+        <h1>🚚 VarejoLog</h1>
+        <p>Acesse seu painel operacional</p>
+        
+        <input type="email" id="email" placeholder="E-mail profissional">
+        <input type="password" id="senha" placeholder="Senha">
+        
+        <button onclick="login()" class="btn-main">Entrar no Sistema</button>
+        <a href="cadastro.html" class="link-secundario">Solicitar novo acesso</a>
+        
+        <div id="status-msg"></div>
     </div>
 
-    <script type="importmap">
-        {
-          "imports": {
-            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-          }
-        }
+    <script type="module">
+        import { auth, db, ADMIN_EMAIL } from './firebase-config.js';
+        import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+        import { doc, getDoc } from "firebase/firestore";
+
+        window.login = async () => {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+            } catch (e) { alert("Erro: " + e.message); }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const uDoc = await getDoc(doc(db, "users", user.uid));
+                const data = uDoc.data();
+                
+                if (user.email !== ADMIN_EMAIL && (!data || !data.aprovado)) {
+                    document.getElementById('status-msg').innerHTML = "<p style='color:orange'>Aguardando aprovação do Admin...</p>";
+                    return;
+                }
+
+                if (user.email === ADMIN_EMAIL) window.location.href = "admin.html";
+                else if (data.role === "fornecedor") window.location.href = "fornecedor.html";
+                else if (data.role === "comprador") window.location.href = "comprador.html";
+            }
+        });
     </script>
-    <script type="module" src="app.js"></script>
 </body>
 </html>
