@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Admin | Logística</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <span>Painel Logística (Admin)</span>
+        <button onclick="logout()">Sair</button>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Gerenciamento de Agendas e Senhas</h2>
+            <table id="tab-admin">
+                <thead>
+                    <tr>
+                        <th>Senha</th>
+                        <th>Fornecedor</th>
+                        <th>Carga/NF</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth, ADMIN_EMAIL } from './firebase-config.js';
+        import { collection, query, onSnapshot, orderBy, doc, runTransaction, updateDoc } from "firebase/firestore";
+        import { signOut, onAuthStateChanged } from "firebase/auth";
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== ADMIN_EMAIL) window.location.href = "index.html";
+        });
+
+        window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+
+        // GERAÇÃO DE SENHA ÚNICA E INFINITA
+        window.gerarSenha = async (idCarga) => {
+            const pRef = doc(db, "config", "parametros");
+            const cRef = doc(db, "agendamentos", idCarga);
+
+            try {
+                await runTransaction(db, async (t) => {
+                    const pDoc = await t.get(pRef);
+                    let n = pDoc.exists() ? pDoc.data().ultimo_numero + 1 : 1;
+                    t.set(pRef, { ultimo_numero: n }, { merge: true });
+                    t.update(cRef, { status: 'confirmado', senha: n });
+                });
+                alert("Senha Gerada!");
+            } catch (e) { console.error(e); }
+        };
+
+        // LISTAR CARGAS
+        onSnapshot(query(collection(db, "agendamentos"), orderBy("createdAt", "desc")), snap => {
+            const html = snap.docs.map(d => {
+                const c = d.data();
+                return `<tr>
+                    <td class="senha">${c.senha || '---'}</td>
+                    <td>${c.empresa}</td>
+                    <td>${c.ref_carga}</td>
+                    <td><span class="badge ${c.status}">${c.status}</span></td>
+                    <td>
+                        ${c.status === 'pendente_logistica' ? `<button onclick="gerarSenha('${d.id}')">Gerar Senha</button>` : 'Finalizado'}
+                    </td>
+                </tr>`;
+            }).join('');
+            document.querySelector('#tab-admin tbody').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
