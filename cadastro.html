@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <title>Cadastro | VarejoLog</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        { "imports": { 
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js" 
+        } }
+    </script>
 </head>
 <body class="auth-page">
     <div class="auth-card">
         <h2>Solicitar Acesso</h2>
         <input type="email" id="email" placeholder="E-mail profissional">
         <input type="password" id="senha" placeholder="Crie uma senha">
-        
         <select id="role">
             <option value="fornecedor">Sou Fornecedor (Externo)</option>
             <option value="comprador">Sou Comprador (Interno)</option>
         </select>
-        
-        <button onclick="solicitar()" class="btn-main">Cadastrar</button>
-        <a href="index.html" class="link-secundario">Já tenho conta</a>
+        <button onclick="solicitarAcesso()" class="btn-confirm">Cadastrar</button>
+        <a href="index.html" class="link-secundario" style="display:block; margin-top:10px; text-align:center;">Já tenho conta</a>
     </div>
-
     <script type="module" src="js/cadastro.js"></script>
 </body>
 </html>
