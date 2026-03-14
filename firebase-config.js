@@ -11,11 +11,7 @@ const firebaseConfig = {
   appId: "1:521835068304:web:b7df9675278cda4a2d9115"
 };
 
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
-
-// Exporta os serviços para usar nos outros arquivos
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-
-console.log("Firebase conectado com sucesso!");
+export const ADMIN_EMAIL = "douglasbrito.dev.10@gmail.com"; // AJUSTE SEU EMAIL AQUI
