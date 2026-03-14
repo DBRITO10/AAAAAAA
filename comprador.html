@@ -2,12 +2,19 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Aprovação Comercial | Comprador</title>
+    <title>Aprovação Comercial | VarejoLog</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        { "imports": { 
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js" 
+        } }
+    </script>
 </head>
 <body>
     <nav>
-        <span>Portal do Comprador</span>
+        <span>Painel do Comprador</span>
         <button onclick="logout()">Sair</button>
     </nav>
 
@@ -22,7 +29,7 @@
                         <th>Fornecedor</th>
                         <th>Ref. Carga</th>
                         <th>Composição Detalhada</th>
-                        <th>Ação</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -30,59 +37,7 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db, auth } from './firebase-config.js';
-        import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
-        import { signOut, onAuthStateChanged } from "firebase/auth";
-
-        // Segurança de página
-        onAuthStateChanged(auth, (user) => {
-            if (!user) window.location.href = "index.html";
-        });
-
-        window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
-
-        // APROVAR CARGA (Manda para a Logística)
-        window.aprovarCarga = async (id) => {
-            try {
-                const docRef = doc(db, "agendamentos", id);
-                await updateDoc(docRef, { 
-                    status: 'pendente_logistica',
-                    aprovado_comercial_em: new Date()
-                });
-                alert("Carga aprovada! Enviada para a Logística.");
-            } catch (e) { console.error("Erro ao aprovar:", e); }
-        };
-
-        // REJEITAR CARGA
-        window.rejeitarCarga = async (id) => {
-            if(confirm("Deseja realmente recusar este agendamento?")) {
-                await updateDoc(doc(db, "agendamentos", id), { status: 'recusado_comercial' });
-            }
-        };
-
-        // ESCUTAR CARGAS PENDENTES
-        const q = query(collection(db, "agendamentos"), where("status", "==", "pendente_comprador"));
-        onSnapshot(q, (snap) => {
-            const tbody = document.querySelector('#tab-comprador tbody');
-            tbody.innerHTML = snap.docs.map(d => {
-                const c = d.data();
-                // Monta a string de itens para visualização rápida
-                const itensStr = c.itens.map(i => `• ${i.qtd}x ${i.desc} (${i.vol})`).join('<br>');
-                
-                return `<tr>
-                    <td><strong>${c.empresa || 'Verificando...'}</strong></td>
-                    <td>${c.ref_carga}</td>
-                    <td style="font-size: 0.85em; color: #666;">${itensStr}</td>
-                    <td>
-                        <button class="btn-approve" onclick="aprovarCarga('${d.id}')">Aprovar</button>
-                        <button class="btn-reject" onclick="rejeitarCarga('${d.id}')" style="margin-left:5px">Recusar</button>
-                    </td>
-                </tr>`;
-            }).join('');
-            
-            if(snap.empty) tbody.innerHTML = "<tr><td colspan='4' style='text-align:center'>Nenhuma carga pendente.</td></tr>";
-        });
+    <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/comprador.js"></script>
 </body>
 </html>
