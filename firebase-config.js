@@ -14,4 +14,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const ADMIN_EMAIL = "douglasbrito.dev.10@gmail.com"; // AJUSTE SEU EMAIL AQUI
+export const ADMIN_EMAIL = "douglasbrito.dev.10@gmail.com";
