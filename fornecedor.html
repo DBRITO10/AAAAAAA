@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Fornecedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <span>Portal do Fornecedor</span>
+        <button onclick="logout()">Sair</button>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h3>Novo Agendamento</h3>
+            <form id="form-carga">
+                <input type="text" id="ref" placeholder="NF ou Número da Carga" required>
+                <input type="date" id="data" required>
+                
+                <div id="itens-container">
+                    <h4>Composição da Carga</h4>
+                    <div class="row-item">
+                        <input type="text" placeholder="Item" class="i-desc">
+                        <input type="number" placeholder="Qtd" class="i-qtd">
+                        <input type="text" placeholder="Volumes" class="i-vol">
+                    </div>
+                </div>
+                <button type="button" onclick="addItem()">+ Adicionar Item</button>
+                <hr>
+                <button type="submit" class="btn-main">Enviar para Aprovação</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Minhas Senhas</h3>
+            <table id="tab-forn">
+                <thead><tr><th>Carga</th><th>Data</th><th>Status</th><th>Senha</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from './firebase-config.js';
+        import { collection, addDoc, query, where, onSnapshot } from "firebase/firestore";
+        
+        window.addItem = () => {
+            const div = document.createElement('div');
+            div.className = 'row-item';
+            div.innerHTML = `<input type="text" placeholder="Item" class="i-desc"><input type="number" placeholder="Qtd" class="i-qtd"><input type="text" placeholder="Volumes" class="i-vol">`;
+            document.getElementById('itens-container').appendChild(div);
+        };
+
+        document.getElementById('form-carga').onsubmit = async (e) => {
+            e.preventDefault();
+            const itens = Array.from(document.querySelectorAll('.row-item')).map(r => ({
+                desc: r.querySelector('.i-desc').value,
+                qtd: r.querySelector('.i-qtd').value,
+                vol: r.querySelector('.i-vol').value
+            }));
+
+            await addDoc(collection(db, "agendamentos"), {
+                uid: auth.currentUser.uid,
+                ref_carga: document.getElementById('ref').value,
+                data_sug: document.getElementById('data').value,
+                itens: itens,
+                status: 'pendente_comprador',
+                createdAt: new Date()
+            });
+            alert("Solicitado!");
+            e.target.reset();
+        };
+
+        // Carregar Agendas
+        onSnapshot(query(collection(db, "agendamentos"), where("uid", "==", auth.currentUser.uid)), snap => {
+            document.querySelector('#tab-forn tbody').innerHTML = snap.docs.map(d => `
+                <tr>
+                    <td>${d.data().ref_carga}</td>
+                    <td>${d.data().data_sug}</td>
+                    <td>${d.data().status}</td>
+                    <td class="senha">${d.data().senha || '-'}</td>
+                </tr>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
