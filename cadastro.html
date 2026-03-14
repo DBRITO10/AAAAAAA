@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro | VarejoLog</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <h2>Solicitar Acesso</h2>
+        <input type="email" id="email" placeholder="E-mail profissional">
+        <input type="password" id="senha" placeholder="Crie uma senha">
+        
+        <select id="role">
+            <option value="fornecedor">Sou Fornecedor (Externo)</option>
+            <option value="comprador">Sou Comprador (Interno)</option>
+        </select>
+        
+        <button onclick="solicitar()" class="btn-main">Cadastrar</button>
+        <a href="index.html" class="link-secundario">Já tenho conta</a>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { createUserWithEmailAndPassword } from "firebase/auth";
+        import { doc, setDoc } from "firebase/firestore";
+
+        window.solicitar = async () => {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, senha);
+                await setDoc(doc(db, "users", res.user.uid), {
+                    email,
+                    role,
+                    aprovado: false, // Bloqueado até você dar o OK
+                    createdAt: new Date()
+                });
+                alert("Cadastro realizado! Aguarde o Administrador liberar seu login.");
+                window.location.href = "index.html";
+            } catch (e) { alert("Erro: " + e.message); }
+        };
+    </script>
+</body>
+</html>
